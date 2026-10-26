@@ -56,6 +56,10 @@ namespace Funplay.Editor.MCP.Server
                 return request.Method switch
                 {
                     "initialize" => HandleInitialize(request),
+                    // MCP `ping` is an optional keepalive some clients probe before
+                    // every request; answering it keeps session liveness checks from
+                    // being mistaken for a dropped connection.
+                    "ping" => HandlePing(request),
                     "notifications/initialized" => null,
                     "notifications/cancelled" => null,
                     "tools/list" => HandleToolsList(request),
@@ -105,6 +109,11 @@ namespace Funplay.Editor.MCP.Server
 
             PluginDebugLogger.Log("[Funplay MCP Server] Initialized successfully");
             return new MCPResponse { Id = request.Id, Result = result };
+        }
+
+        private MCPResponse HandlePing(MCPRequest request)
+        {
+            return new MCPResponse { Id = request.Id, Result = new Dictionary<string, object>() };
         }
 
         private MCPResponse HandleToolsList(MCPRequest request)
@@ -295,6 +304,7 @@ namespace Funplay.Editor.MCP.Server
             {
                 case null:
                 case "initialize":
+                case "ping":
                 case "notifications/initialized":
                 case "notifications/cancelled":
                 case "resources/list":
